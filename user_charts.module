@@ -48,3 +48,22 @@ function user_charts_permission() {
 function user_charts_listing() {
   return '';
 }
+
+/**
+ * Implements hook_libraries_info().
+ */
+function user_charts_libraries_info() {
+  $libraries = array();
+  
+  $libraries['saveSvgAsPng'] = array(
+    'name' => 'Save SVG as PNG',
+    'vendor url' => 'https://github.com/exupero/saveSvgAsPng',
+    'download url' => 'https://github.com/exupero/saveSvgAsPng',
+    'version' => 1,
+    'files' => array(
+      'js' => array('saveSvgAsPng.js'),
+    ),
+  );
+
+  return $libraries;
+}

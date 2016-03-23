@@ -1,11 +1,10 @@
 
-Drupal.behaviors.userCharts.PCoA = {
+Drupal.behaviors.userChartsPCoA = {
   attach: function (context, settings) {
   
     if (Drupal.settings.hasOwnProperty('userCharts')) {
       var data = Drupal.settings.userCharts.PCoA;
       var groupData = Drupal.settings.userCharts.groups;
-      debugger;
 
       // Define the sizes and margins for our canvas.
       var margin = {top: 20, right: 150, bottom: 20, left: 20},
@@ -60,6 +59,7 @@ Drupal.behaviors.userCharts.PCoA = {
 
       // Actually create my canvas.
       var svg = d3.select("#chart").append("svg")
+        .attr('id', 'PCoA-chart')
         .attr("width", width + margin.left + margin.right)
         .attr("height", height + margin.top + margin.bottom)
       .append("g")
@@ -133,5 +133,20 @@ Drupal.behaviors.userCharts.PCoA = {
       svg.selectAll(".other")
         .style("stroke", "black")
         .style("fill", "black");
+        
     }
 }};
+
+// Add in the save as png link/download.
+// uses external library.
+(function ($) {
+  Drupal.behaviors.myModuleBehavior = {
+    attach: function (context, settings) {
+
+      $('#download-svg-link').click(function() { 
+        saveSvgAsPng(document.getElementById("PCoA-chart"), "PCoA_chart.png", {scale: 2, backgroundColor:'#fff'});
+      });
+
+    }
+  };
+})(jQuery);

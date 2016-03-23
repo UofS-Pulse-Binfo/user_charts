@@ -22,6 +22,9 @@ function user_charts_pcoa_form($form, $form_state) {
     'http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js',
     drupal_get_path('module','user_charts') . '/js/pcoaScatterplot.chart.js',
   );
+  
+  libraries_load('saveSvgAsPng');
+  
   // Also add the css.
   $form['#attached']['css'] = array(
     drupal_get_path('module','user_charts') . '/css/pcoa_scatterplot.chart.css',
@@ -78,6 +81,15 @@ function user_charts_pcoa_form($form, $form_state) {
     '#type' => 'submit',
     '#value' => 'Generate',
   );
+
+  if (isset($form_state['values'])) {
+    $form['download'] = array(
+      '#type' => 'submit',
+      '#prefix' => '<div id="download-svg-link">',
+      '#value' => 'Save the chart as PNG',
+      '#suffix' => '</div>',
+    );
+  }
   
   return $form;
 }

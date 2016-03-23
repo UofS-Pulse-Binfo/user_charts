@@ -9,6 +9,11 @@
   stroke: #000;
 }
 
+#download-svg-link {
+  font-style: underline;
+  font-weight
+}
+
 .d3-tip {
   line-height: 1;
   font-weight: bold;
@@ -38,3 +43,6 @@
   left: 0;
 }
 
+#download-svg-link {
+  float: right;
+}
