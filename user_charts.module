@@ -1,0 +1,50 @@
+<?php
+/**
+ * @file
+ * Provides the core functionality for this module.
+ */
+ 
+/**
+ * Implements hook_menu().
+ */
+function user_charts_menu() {
+  $items = array();
+  
+  $items['user-charts'] = array(
+    'title' => 'User-driven Charts',
+    'description' => t("A compilation of charts that users can customize with their own data."),
+    'page callback' => 'user_charts_listing',
+    'access arguments' => array('access user driven charts'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+  
+  $items['user-charts/PCoA'] = array(
+    'title' => 'Principal Component Analysis (PCoA)',
+    'description' => '',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('user_charts_pcoa_form'),
+    'access arguments' => array('access user driven charts'),
+    'type' => MENU_NORMAL_ITEM,
+    'file' => 'forms/pcoa_scatterplot.form.inc',
+  );
+  
+  return $items;
+}
+
+/**
+ * Implements hook_permission().
+ */
+function user_charts_permission() {
+  return array(
+    'access user driven charts' => array(
+      'title' => t('Access forms used to generate user-driven charts.'),
+    )
+  );
+}
+
+/**
+ * Displays a rendered listing of user-driven charts.
+ */
+function user_charts_listing() {
+  return '';
+}

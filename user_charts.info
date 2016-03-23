@@ -1,0 +1,4 @@
+name = User-driven D3.js Charts
+description = Provides forms that allow users to input data influencing D3.js charts.
+core = 7.x
+package = Charts
