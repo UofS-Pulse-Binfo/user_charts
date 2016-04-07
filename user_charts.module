@@ -10,7 +10,7 @@
 function user_charts_menu() {
   $items = array();
   
-  $items['user-charts'] = array(
+  $items['user_charts'] = array(
     'title' => 'User-driven Charts',
     'description' => t("A compilation of charts that users can customize with their own data."),
     'page callback' => 'user_charts_listing',
@@ -18,9 +18,9 @@ function user_charts_menu() {
     'type' => MENU_NORMAL_ITEM,
   );
   
-  $items['user-charts/PCoA'] = array(
+  $items['user_charts/PCoA'] = array(
     'title' => 'Principal Component Analysis (PCoA)',
-    'description' => '',
+    'description' => 'Allows users to generate a PCoA Scatterplot.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('user_charts_pcoa_form'),
     'access arguments' => array('access user driven charts'),
@@ -46,7 +46,30 @@ function user_charts_permission() {
  * Displays a rendered listing of user-driven charts.
  */
 function user_charts_listing() {
-  return '';
+
+  // Retrieve enough information about the current menu item to build a tree of it's children.
+  $parent = db_query("SELECT mlid, plid, depth, menu_name FROM {menu_links} WHERE link_path=:path",
+    array(':path' => 'user_charts'))->fetchObject();
+  
+  // Build a tree containing the children of the current menu item.
+  $parameters = array(
+    'active_trail' => array($parent->plid),
+    'only_active_trail' => FALSE,
+    'min_depth' => $parent->depth+1,
+    'max_depth' => $parent->depth+1,
+    'conditions' => array('plid' => $parent->mlid),
+  );
+  $children = menu_build_tree($parent->menu_name, $parameters);
+  
+  // Output the first row of the tree as a list of charts the user can use.
+  $output = '<dl class="admin-list">';
+  foreach ($children as $child) {
+    $output .= '<dt>' . l($child['link']['link_title'], $child['link']['link_path']) . '</dt>'
+      . '<dd>' . $child['link']['description'] . '</dd>';
+  }
+  $output .= '</dl>';
+  
+  return $output;
 }
 
 /**
