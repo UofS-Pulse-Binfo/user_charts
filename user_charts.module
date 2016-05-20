@@ -20,14 +20,36 @@ function user_charts_menu() {
   
   $items['user_charts/PCoA'] = array(
     'title' => 'Principal Component Analysis (PCoA)',
-    'description' => 'Allows users to generate a PCoA Scatterplot.',
+    'description' => 'Allows users to generate a PCoA Scatterplot by caop/pasting their results. The analysis must be done independantly.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('user_charts_pcoa_form'),
     'access arguments' => array('access user driven charts'),
     'type' => MENU_NORMAL_ITEM,
     'file' => 'forms/pcoa_scatterplot.form.inc',
   );
-  
+
+/*  
+  $items['user_charts/gene'] = array(
+    'title' => 'Gene Diagram',
+    'description' => 'Draws a diagram of a gene based off a GFF3.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('user_charts_gene_diagram_form'),
+    'access arguments' => array('access user driven charts'),
+    'type' => MENU_NORMAL_ITEM,
+    'file' => 'forms/gene_diagram.form.inc',
+  );
+*/
+
+  $items['user_charts/heatmap'] = array(
+    'title' => 'Heatmap',
+    'description' => 'Draws a heatmap to highlight differences between treatments.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('user_charts_heatmap_form'),
+    'access arguments' => array('access user driven charts'),
+    'type' => MENU_NORMAL_ITEM,
+    'file' => 'forms/heatmap.form.inc',
+  );
+
   return $items;
 }
 

@@ -1,7 +1,7 @@
 
 Drupal.behaviors.userChartsPCoA = {
   attach: function (context, settings) {
-  
+
     if (Drupal.settings.hasOwnProperty('userCharts')) {
       var data = Drupal.settings.userCharts.PCoA;
       var groupData = Drupal.settings.userCharts.groups;
@@ -59,12 +59,12 @@ Drupal.behaviors.userChartsPCoA = {
 
       // Actually create my canvas.
       var svg = d3.select("#chart").append("svg")
-        .attr('id', 'PCoA-chart')
+        .attr('id', 'chart-svg')
         .attr("width", width + margin.left + margin.right)
         .attr("height", height + margin.top + margin.bottom)
       .append("g")
         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-  
+
       // Initialize my tooltip.
       svg.call(tip);
 
@@ -128,25 +128,11 @@ Drupal.behaviors.userChartsPCoA = {
         .attr("dy", ".35em")
         .style("text-anchor", "end")
         .text(function(d) { return d; });
-        
+
       // Change the "Other" group to black.
       svg.selectAll(".other")
         .style("stroke", "black")
         .style("fill", "black");
-        
+
     }
 }};
-
-// Add in the save as png link/download.
-// uses external library.
-(function ($) {
-  Drupal.behaviors.myModuleBehavior = {
-    attach: function (context, settings) {
-
-      $('#download-svg-link').click(function() { 
-        saveSvgAsPng(document.getElementById("PCoA-chart"), "PCoA_chart.png", {scale: 2, backgroundColor:'#fff'});
-      });
-
-    }
-  };
-})(jQuery);
