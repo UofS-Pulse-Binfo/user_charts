@@ -14,6 +14,11 @@ function user_charts_heatmap_form($form, &$form_state) {
     drupal_get_path('module','user_charts') . '/js/saveSVGasPNG.js',
   );
 
+  // Also add the css.
+  $form['#attached']['css'] = array(
+    drupal_get_path('module','user_charts') . '/css/save_svg.css',
+  );
+
   // DATA ///////////////////
   $form['data'] = array(
     '#type' => 'fieldset',
@@ -108,10 +113,10 @@ function user_charts_heatmap_form($form, &$form_state) {
 
   if (isset($form_state['values'])) {
     $form['download'] = array(
-      '#type' => 'submit',
-      '#prefix' => '<div id="download-svg-link">',
-      '#value' => 'Save the chart as PNG',
-      '#suffix' => '</div>',
+      '#type' => 'markup',
+      '#markup' => '<div id="download-svg-link">'
+      . 'Save the chart as PNG'
+      . '</div>',
     );
   }
 

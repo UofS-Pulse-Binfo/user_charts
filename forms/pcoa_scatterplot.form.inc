@@ -21,6 +21,7 @@ function user_charts_pcoa_form($form, &$form_state) {
   // Also add the css.
   $form['#attached']['css'] = array(
     drupal_get_path('module','user_charts') . '/css/pcoa_scatterplot.chart.css',
+    drupal_get_path('module','user_charts') . '/css/save_svg.css',
   );
 
   // DEFAULTS ///////////////
@@ -141,10 +142,10 @@ function user_charts_pcoa_form($form, &$form_state) {
 
   if (isset($form_state['values'])) {
     $form['download'] = array(
-      '#type' => 'submit',
-      '#prefix' => '<div id="download-svg-link">',
-      '#value' => 'Save the chart as PNG',
-      '#suffix' => '</div>',
+      '#type' => 'markup',
+      '#markup' => '<div id="download-svg-link">'
+      . 'Save the chart as PNG'
+      . '</div>',
     );
   }
 
