@@ -3,13 +3,13 @@
  * @file
  * Provides the core functionality for this module.
  */
- 
+
 /**
  * Implements hook_menu().
  */
 function user_charts_menu() {
   $items = array();
-  
+
   $items['user_charts'] = array(
     'title' => 'User-driven Charts',
     'description' => t("A compilation of charts that users can customize with their own data."),
@@ -17,7 +17,7 @@ function user_charts_menu() {
     'access arguments' => array('access user driven charts'),
     'type' => MENU_NORMAL_ITEM,
   );
-  
+
   $items['user_charts/PCoA'] = array(
     'title' => 'Principal Component Analysis (PCoA)',
     'description' => 'Allows users to generate a PCoA Scatterplot by caop/pasting their results. The analysis must be done independantly.',
@@ -28,7 +28,7 @@ function user_charts_menu() {
     'file' => 'forms/pcoa_scatterplot.form.inc',
   );
 
-/*  
+/*
   $items['user_charts/gene'] = array(
     'title' => 'Gene Diagram',
     'description' => 'Draws a diagram of a gene based off a GFF3.',
@@ -48,6 +48,16 @@ function user_charts_menu() {
     'access arguments' => array('access user driven charts'),
     'type' => MENU_NORMAL_ITEM,
     'file' => 'forms/heatmap.form.inc',
+  );
+
+  $items['user_charts/beanplot'] = array(
+    'title' => 'Beanplot',
+    'description' => 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis tincidunt, mauris eget consectetur rutrum',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('user_charts_beanplot_form'),
+    'access arguments' => array('access user driven charts'),
+    'type' => MENU_NORMAL_ITEM,
+    'file' => 'forms/beanplot.form.inc',
   );
 
   return $items;
@@ -72,7 +82,7 @@ function user_charts_listing() {
   // Retrieve enough information about the current menu item to build a tree of it's children.
   $parent = db_query("SELECT mlid, plid, depth, menu_name FROM {menu_links} WHERE link_path=:path",
     array(':path' => 'user_charts'))->fetchObject();
-  
+
   // Build a tree containing the children of the current menu item.
   $parameters = array(
     'active_trail' => array($parent->plid),
@@ -82,7 +92,7 @@ function user_charts_listing() {
     'conditions' => array('plid' => $parent->mlid),
   );
   $children = menu_build_tree($parent->menu_name, $parameters);
-  
+
   // Output the first row of the tree as a list of charts the user can use.
   $output = '<dl class="admin-list">';
   foreach ($children as $child) {
@@ -90,7 +100,7 @@ function user_charts_listing() {
       . '<dd>' . $child['link']['description'] . '</dd>';
   }
   $output .= '</dl>';
-  
+
   return $output;
 }
 
@@ -99,7 +109,7 @@ function user_charts_listing() {
  */
 function user_charts_libraries_info() {
   $libraries = array();
-  
+
   $libraries['saveSvgAsPng'] = array(
     'name' => 'Save SVG as PNG',
     'vendor url' => 'https://github.com/exupero/saveSvgAsPng',
