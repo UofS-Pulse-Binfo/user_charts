@@ -72,7 +72,7 @@
         // Canvas.
         svg = d3.select('#beanplot-container')
           .append('svg')
-            .attr('id', 'beanplot-svg-container');
+            .attr('id', 'chart-svg');
 
         if ($('#beanplot-container')) {
           $('#edit-submit').hide();

@@ -247,7 +247,7 @@ function user_charts_beanplot_form($form, &$form_state) {
   $form['#attached']['js'] = array(
     'http://d3js.org/d3.v3.min.js',
     drupal_get_path('module','user_charts') . '/js/beanplot.chart.js',
-    drupal_get_path('module','user_charts') . '/js/saveSVGasPNGBeanplot.js',
+    drupal_get_path('module','user_charts') . '/js/saveSVGasPNG.js',
   );
 
 
