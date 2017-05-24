@@ -38,10 +38,10 @@ function user_charts_beanplot_form($form, &$form_state) {
         and should consists of the following 4 columns:
 
         <ol>
-          <li><em>Location</em>: Lorem ipsum dolor sit amet, consectetur adipiscing elit.</li>
-          <li><em>Year</em>: Lorem ipsum dolor sit amet, consectetur adipiscing elit.</li>
-          <li><em>Germplasm</em>: Lorem ipsum dolor sit amet, consectetur adipiscing elit.</li>
-          <li><em>Mean</em>: Lorem ipsum dolor sit amet, consectetur adispiscing elit.</li>
+          <li><em>Location</em>: The Full name of the location of the plot the data was recorded in (e.g. Sutherland).</li>
+          <li><em>Year</em>: The year the data was recorded in (e.g 2017).</li>
+          <li><em>Germplasm</em>: The name of the germplasm measured as you would like it to appear in the diagram (e.g. CDC Redberry).</li>
+          <li><em>Mean</em>: The mean of the data points recorded for a given germplasm and siteyear. Specifically, you should average the values across replicates.</li>
         </ol>',
     );
 
