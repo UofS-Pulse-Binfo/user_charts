@@ -4,6 +4,25 @@
  * Provides a form for users to enter data and generate a beanplot diagram.
  */
 function user_charts_beanplot_form($form, &$form_state) {
+  // Style, Javascript and Libraries.
+  libraries_load('saveSvgAsPng');
+  $form['#attached']['js'] = array(
+    'http://d3js.org/d3.v3.min.js',
+    drupal_get_path('module','user_charts') . '/js/beanplot.chart.js',
+    drupal_get_path('module','user_charts') . '/js/saveSVGasPNG.js',
+  );
+
+  $form['#attached']['css'] = array(
+    drupal_get_path('module','user_charts') . '/css/save_svg.css',
+  );
+
+  drupal_add_css(
+    '#summary-table {
+      width: 90%;
+      margin: 0 auto;
+    }', 'inline');
+
+
   // Determine if fieldset should be collapsed.
   $collapsed = FALSE;
   if (isset($form_state['processed']) && count($form_state['processed']) > 0) {
@@ -256,27 +275,6 @@ function user_charts_beanplot_form($form, &$form_state) {
         '#markup' => '<div id="download-svg-link">Save the chart as PNG</div>',
       );
     }
-
-
-  // Style, Javascript and Libraries.
-  drupal_add_css(
-    '#summary-table {
-      width: 90%;
-      margin: 0 auto;
-    }', 'inline');
-
-
-  $form['#attached']['css'] = array(
-    drupal_get_path('module','user_charts') . '/css/save_svg.css',
-  );
-
-  libraries_load('saveSvgAsPng');
-  $form['#attached']['js'] = array(
-    'http://d3js.org/d3.v3.min.js',
-    drupal_get_path('module','user_charts') . '/js/beanplot.chart.js',
-    drupal_get_path('module','user_charts') . '/js/saveSVGasPNG.js',
-  );
-
 
   return $form;
 }
