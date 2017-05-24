@@ -4,6 +4,12 @@
  * Provides a form for users to enter data and generate a beanplot diagram.
  */
 function user_charts_beanplot_form($form, &$form_state) {
+  // Determine if fieldset should be collapsed.
+  $collapsed = FALSE;
+  if (isset($form_state['processed']) && count($form_state['processed']) > 0) {
+    $collapsed = TRUE;
+  }
+
   // 1. DATA
   $form['data'] = array(
     '#type' => 'fieldset',
@@ -130,12 +136,6 @@ function user_charts_beanplot_form($form, &$form_state) {
 
 
   // 2. CUSTOMIZE DISPLAY
-  // Determine if fieldset should be collapsed.
-  $collapsed = FALSE;
-  if (isset($form_state['processed']) && count($form_state['processed']) > 0) {
-    $collapsed = TRUE;
-  }
-
   $form['customize'] = array(
     '#type' => 'fieldset',
     '#title' => t('Step #2 Customize Display'),
@@ -201,9 +201,7 @@ function user_charts_beanplot_form($form, &$form_state) {
     '#collapsed' => TRUE,
   );
 
-    if (isset($form_state['triggering_element']['#value'])
-        && $form_state['triggering_element']['#value'] == 'Show Example') {
-
+    if (isset($form_state['show_example']) && $form_state['show_example']) {
       // When show example is clicked.
       $form['chart']['msg'] = array(
         '#type' => 'markup',
