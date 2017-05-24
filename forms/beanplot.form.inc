@@ -366,8 +366,8 @@ function user_charts_beanplot_form_validate($form, &$form_state) {
     $arr_errors = array();
     // Line error message.
     $line_error = array(
-      'missing_col' => 'Row #%i (%line) must contain 4 columns. Currently columns are interpreted as: %columns. Make sure your data is separated by a tab or 2+ spaces.',
-      'not_number'  => 'Mean value in Row #%i (%line) is not a number.',
+      'missing_col' => 'Line #%i (%line) : Requires four (4) columns, %columns detected',
+      'not_number'  => 'Line #%i (%line) : The mean (4th column) should be a number.',
     );
 
     $i = 0;
@@ -375,14 +375,14 @@ function user_charts_beanplot_form_validate($form, &$form_state) {
       if (trim($line)) {
         // Line is not empty.
         // Read each tab, 2 or more spaces.
-        $cols = preg_split('/(\t|\s\s+)/', $line);
+        $cols = preg_split('/(\t|\s\s+)/', trim($line));
 
         if (count($cols) < 4) {
           // A line must contain 4 columns.
           $arr_errors[] = t($line_error['missing_col'], array(
             '%i' => $i + 1,   // Line counter.
             '%line' => $line, // Current line.
-            '%columns' => '"' . implode('","', $cols) . '"'
+            '%columns' => count($cols)
           ));
         }
         else {
