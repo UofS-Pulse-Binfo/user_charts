@@ -4,13 +4,6 @@
  * Provides a form for users to enter data and generate a beanplot diagram.
  */
 function user_charts_beanplot_form($form, &$form_state) {
-  // Determine if fieldset should be collapsed.
-  $collapsed = FALSE;
-  if (isset($form_state['processed']) && count($form_state['processed']) > 0) {
-    $collapsed = TRUE;
-  }
-
-
   // 1. DATA
   $form['data'] = array(
     '#type' => 'fieldset',
@@ -21,13 +14,6 @@ function user_charts_beanplot_form($form, &$form_state) {
 
 
     // TRAITS
-    // Instructions - Trait field.
-    $form['data']['instruct_trait'] = array(
-      '#type' => 'item',
-      '#markup' => '1. Trait should be the name of the trait measured including units. <br />
-      <em>e.g. Days till 10% of Plants have Elongated Tendrils (days)</em>',
-    );
-
     // Field - Trait field
     $form['data']['trait'] = array(
       '#title' => 'Trait',
@@ -36,7 +22,9 @@ function user_charts_beanplot_form($form, &$form_state) {
       '#id' => 'user-chart-trait-field',
       '#attributes' => array(
         'style' => 'width: 98.5%',
-      )
+      ),
+      '#description' => t('Trait should be the name of the trait measured including units.
+        <br /> <em>e.g. Days till 10% of Plants have Elongated Tendrils (days)</em>'),
     );
     //
 
@@ -45,7 +33,7 @@ function user_charts_beanplot_form($form, &$form_state) {
     // Instructions - Data field.
     $form['data']['instruct_data'] = array(
       '#type' => 'item',
-      '#markup' => '2. Paste a tab delimeted copy of your data into the
+      '#markup' => 'Paste a tab delimeted copy of your data into the
         following box. Your data should <strong>NOT INCLUDE A HEADER</strong>
         and should consists of the following 4 columns:
 
@@ -142,6 +130,12 @@ function user_charts_beanplot_form($form, &$form_state) {
 
 
   // 2. CUSTOMIZE DISPLAY
+  // Determine if fieldset should be collapsed.
+  $collapsed = FALSE;
+  if (isset($form_state['processed']) && count($form_state['processed']) > 0) {
+    $collapsed = TRUE;
+  }
+
   $form['customize'] = array(
     '#type' => 'fieldset',
     '#title' => t('Step #2 Customize Display'),
