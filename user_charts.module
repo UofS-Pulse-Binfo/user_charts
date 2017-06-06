@@ -51,8 +51,8 @@ function user_charts_menu() {
   );
 
   $items['user_charts/beanplot'] = array(
-    'title' => 'Beanplot',
-    'description' => 'Draws a beanplot to show visual comparison of data between groups',
+    'title' => 'Phenotype Beanplot',
+    'description' =>  'Allows users to draw a chart showing the distribution of phenotype values for a number of site years.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('user_charts_beanplot_form'),
     'access arguments' => array('access user driven charts'),
