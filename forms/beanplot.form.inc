@@ -1,26 +1,44 @@
 <?php
+
 /**
  * Implements the Form API.
  * Provides a form for users to enter data and generate a beanplot diagram.
  */
 function user_charts_beanplot_form($form, &$form_state) {
+  // Style, Javascript and Libraries.
+  $module_path = drupal_get_path('module','user_charts');
+
+  libraries_load('saveSvgAsPng');
+
+  $form['#attached']['js'] = array(
+    'http://d3js.org/d3.v3.min.js',
+    $module_path . '/js/beanplot.chart.js',
+    $module_path . '/js/saveSVGasPNG.js',
+  );
+
+  $form['#attached']['css'] = array(
+    $module_path . '/css/save_svg.css',
+  );
+
+  drupal_add_css('#summary-table { width: 90%; margin: 0 auto; }', 'inline');
+
+
+  // Determine if fieldset should be collapsed.
+  $collapsed = FALSE;
+  if (isset($form_state['processed']) && count($form_state['processed']) > 0) {
+    $collapsed = TRUE;
+  }
+
   // 1. DATA
   $form['data'] = array(
     '#type' => 'fieldset',
     '#title' => t('Step #1 Data'),
     '#collapsible' => TRUE,
-    '#collapsed' => isset($form_state['values']) ? TRUE : FALSE,
+    '#collapsed' => $collapsed,
   );
 
 
     // TRAITS
-    // Instructions - Trait field.
-    $form['data']['instruct_trait'] = array(
-      '#type' => 'item',
-      '#markup' => '1. Trait should be the name of the trait measured including units. <br />
-      <em>e.g. Days till 10% of Plants have Elongated Tendrils (days)</em>',
-    );
-
     // Field - Trait field
     $form['data']['trait'] = array(
       '#title' => 'Trait',
@@ -29,7 +47,8 @@ function user_charts_beanplot_form($form, &$form_state) {
       '#id' => 'user-chart-trait-field',
       '#attributes' => array(
         'style' => 'width: 98.5%',
-      )
+      ),
+      '#description' => t('Trait should be the name of the trait measured including units (e.g. Days till 10% of Plants have Elongated Tendrils (days)).'),
     );
     //
 
@@ -38,15 +57,15 @@ function user_charts_beanplot_form($form, &$form_state) {
     // Instructions - Data field.
     $form['data']['instruct_data'] = array(
       '#type' => 'item',
-      '#markup' => '2. Paste a tab delimeted copy of your data into the
+      '#markup' => 'Paste a tab delimited copy of your data into the
         following box. Your data should <strong>NOT INCLUDE A HEADER</strong>
         and should consists of the following 4 columns:
 
         <ol>
-          <li><em>Location</em>: Lorem ipsum dolor sit amet, consectetur adipiscing elit.</li>
-          <li><em>Year</em>: Lorem ipsum dolor sit amet, consectetur adipiscing elit.</li>
-          <li><em>Germplasm</em>: Lorem ipsum dolor sit amet, consectetur adipiscing elit.</li>
-          <li><em>Mean</em>: Lorem ipsum dolor sit amet, consectetur adispiscing elit.</li>
+          <li><em>Location</em>: The Full name of the location of the plot the data was recorded in (e.g. Sutherland).</li>
+          <li><em>Year</em>: The year the data was recorded in (e.g 2017).</li>
+          <li><em>Germplasm</em>: The name of the germplasm measured as you would like it to appear in the diagram (e.g. CDC Redberry).</li>
+          <li><em>Mean</em>: The mean of the data points recorded for a given germplasm and siteyear. Specifically, you should average the values across replicates.</li>
         </ol>',
     );
 
@@ -60,61 +79,6 @@ function user_charts_beanplot_form($form, &$form_state) {
     //
 
 
-    // OPTIONAL FIELDS.
-    // Summarize datase into a table and highlight germplasm.
-    $form['data']['instruct_options'] = array(
-      '#type' => 'item',
-      '#markup' => '3. Chart options.',
-    );
-
-    $form['data']['table'] = array(
-      '#type' => 'checkbox',
-      '#title' => 'Create a summary table',
-    );
-
-    $form['data']['highlight'] = array(
-      '#type' => 'checkbox',
-      '#title' => 'Highlight Gemplasm',
-      '#id' => 'user-charts-hightlight-gy-checkbox',
-      '#ajax' => array(
-        'event' => 'click',
-        'callback' => 'ajax_callback_select_germ',
-        'wrapper' => 'ajax-wrapper-select-germ',
-        'progress' => array('type' => '', 'message' => ''),
-      ),
-    );
-
-      $form['data']['ajax_wrapper'] = array(
-        '#type' => 'markup',
-        '#prefix' => '<div id="ajax-wrapper-select-germ">',
-        '#suffix' => '</div>',
-      );
-
-      if (isset($form_state['values']['data']) && !empty($form_state['values']['data'])
-        && isset($form_state['values']['trait']) && !empty($form_state['values']['trait'])
-        && isset($form_state['values']['highlight']) && $form_state['values']['highlight'] == 1) {
-
-        $data = $form_state['values']['data'];
-        // Parse dataset and extract all germplasm name.
-        $germplasm = user_charts_get_germyear($data);
-
-        if (count($germplasm) > 0) {
-          $form['data']['ajax_wrapper']['germplasm'] = array(
-            '#type' => 'select',
-            '#title' => 'Select Germplasm:',
-            '#options' => $germplasm,
-          );
-        }
-        else {
-          $form['data']['ajax_wrapper']['no_germ'] = array(
-            '#type' => 'item',
-            '#markup' => '<div class="error messages">Dataset does not contain Germplasm column.</div>',
-          );
-        }
-      }
-    //
-
-
     // EXAMPLE DATA.
     $form['data']['example'] = array(
       '#type' => 'fieldset',
@@ -125,7 +89,7 @@ function user_charts_beanplot_form($form, &$form_state) {
 
       $form['data']['example']['example_trait'] = array(
         '#type' => 'textfield',
-        '#title' => 'Trait:',
+        '#title' => 'Trait',
         '#disabled' => TRUE,
         '#id' => 'user-chart-example-trait-field',
         '#value' => 'Days till 10% of Plants have Elongated Tendrils (days)',
@@ -149,7 +113,7 @@ function user_charts_beanplot_form($form, &$form_state) {
 
       $form['data']['example']['example_table'] = array(
         '#type' => 'checkbox',
-        '#title' => 'Create a summary table',
+        '#title' => 'Create a summary table showing distribution of mean values',
         '#value' => 1,
         '#disabled' => TRUE,
       );
@@ -159,7 +123,7 @@ function user_charts_beanplot_form($form, &$form_state) {
 
       $form['data']['example']['example_highlight'] = array(
         '#type' => 'checkbox',
-        '#title' => 'Highlight Gemplasm/Year',
+        '#title' => 'Highlight Gemplasm',
         '#value' => 1,
         '#disabled' => TRUE,
       );
@@ -169,10 +133,10 @@ function user_charts_beanplot_form($form, &$form_state) {
 
       $form['data']['example']['example_germplasm'] = array(
         '#type' => 'select',
-        '#title' => 'Select Germplasm:',
         '#options' => array('GERM:X'),
         '#default_value' => 1,
         '#disabled' => TRUE,
+        '#description' => t('A list of germplasm detected from the dataset provided. Please select a germplasm to highlight in the chart.')
       );
 
       $form_state['example']['example_germplasm'] = 'GERM:X';
@@ -189,32 +153,127 @@ function user_charts_beanplot_form($form, &$form_state) {
     //
 
 
-  // 2. CHART/VISUALIZATION.
-  $form['chart'] = array(
+  // 2. CUSTOMIZE DISPLAY
+  $form['customize'] = array(
     '#type' => 'fieldset',
-    '#title' => t('Step #2 Visualization'),
+    '#title' => t('Step #2 Customize Display'),
     '#collapsible' => TRUE,
-    '#collapsed' => isset($form_state['values']) ? FALSE : TRUE,
+    '#collapsed' => $collapsed,
   );
 
-    if (isset($form_state['triggering_element']['#value'])
-        && $form_state['triggering_element']['#value'] == 'Show Example') {
 
-      // When show example is clicked.
-      $form['chart']['msg'] = array(
-        '#type' => 'markup',
-        '#prefix' => '<div class="messages warning">',
-        '#suffix' => '</div><br />',
-        '#markup' => 'The following chart is showing EXAMPLE DATA.
-          To show your own data, click "Generate" at the bottom of this form.',
-      );
-    }
-
-    // Canvas.
-    $form['chart']['placeholder'] = array(
-      '#type' => 'markup',
-      '#markup' => '<div id="beanplot-container" style="height: 500px; width: 100%;"></div>',
+    // OPTIONAL FIELDS.
+    $form['customize']['table'] = array(
+      '#type' => 'checkbox',
+      '#title' => 'Create a summary table showing distribution of mean values',
     );
+
+    $form['customize']['highlight'] = array(
+      '#type' => 'checkbox',
+      '#title' => 'Highlight Gemplasm',
+      '#id' => 'user-charts-hightlight-gy-checkbox',
+      '#ajax' => array(
+        'event' => 'click',
+        'callback' => 'ajax_callback_select_germ',
+        'wrapper' => 'ajax-wrapper-select-germ',
+        'progress' => array('type' => '', 'message' => ''),
+      ),
+    );
+
+      $form['customize']['ajax_wrapper'] = array(
+        '#type' => 'markup',
+        '#prefix' => '<div id="ajax-wrapper-select-germ">',
+        '#suffix' => '</div>',
+      );
+
+      $form['customize']['ajax_wrapper']['germplasm'] = array(
+        '#type' => 'select',
+        '#options' => array(),
+        '#required' => TRUE,
+        '#disabled' => TRUE,
+        '#description' => t('A list of germplasm detected from the dataset provided. Please select a germplasm to highlight in the chart.')
+      );
+
+      if (isset($form_state['values']['data']) && !empty($form_state['values']['data'])
+        && isset($form_state['values']['trait']) && !empty($form_state['values']['trait'])
+        && isset($form_state['values']['highlight']) && $form_state['values']['highlight'] == 1) {
+
+        $form['customize']['ajax_wrapper']['germplasm']['#disabled'] = FALSE;
+
+        $data = $form_state['values']['data'];
+        // Parse dataset and extract all germplasm name.
+        $germplasm = user_charts_get_germyear($data);
+
+        $form['customize']['ajax_wrapper']['germplasm']['#options'] = $germplasm;
+      }
+      else {
+        // No trait, no data... no germplasm.
+        $form['customize']['ajax_wrapper']['germplasm']['#disabled'] = TRUE;
+      }
+    //
+
+
+  // 3. CHART/VISUALIZATION.
+  $form['chart'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Step #3 Visualization'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+  );
+
+    if (isset($form_state['processed']) && count($form_state['processed']) > 0) {
+      // Showing sample data only.
+      if (isset($form_state['show_example']) && $form_state['show_example']) {
+        // When show example is clicked.
+        $form['chart']['msg'] = array(
+          '#type' => 'markup',
+          '#prefix' => '<div id="message-sample-data" class="messages warning">',
+          '#suffix' => '</div>',
+          '#markup' => 'The following chart is showing EXAMPLE DATA.
+            To show your own data, click "Step #1 Data" link on top of this form.',
+        );
+
+        if ($form_state['processed']['source'] == 'index') {
+          // Enable the germplasm option when show example.
+          $form['customize']['ajax_wrapper']['germplasm']['#disabled'] = FALSE;
+        }
+        elseif ($form_state['processed']['source'] == 'example') {
+          // Reset this option in case it was checked then show example.
+          $form['customize']['highlight']['#value'] = FALSE;
+        }
+      }
+
+      // Canvas.
+      $form['chart']['placeholder'] = array(
+        '#type' => 'markup',
+        '#markup' => '<div id="beanplot-container" style="height: 500px; width: 100%;"></div>',
+      );
+
+      if (isset($form_state['processed']['summary_table'])) {
+        $table_headers = $form_state['processed']['summary_table']['headers'];
+        $sticky_header = $form_state['processed']['summary_table']['sticky'];;
+        $tmp_rows      = $form_state['processed']['summary_table']['rows'];
+        $attr_id       = $form_state['processed']['summary_table']['id'];;
+
+        $table_rows = array();
+
+        foreach($tmp_rows as $row) {
+          $table_rows[] = array($row['location'], $row['year'], $row['mean'], $row['no']);
+        }
+
+        $form['chart']['summary_table'] = array(
+          '#type' => 'markup',
+          '#markup' => theme('table', array(
+            'header' => $table_headers,
+            'rows' => $table_rows,
+            'sticky' => $sticky_header,
+            'attributes' => array('id' => $attr_id))
+          ),
+        );
+      }
+
+      $form['chart']['#collapsed'] = FALSE;
+    }
 
 
   // 3. GENERATE BUTTON.
@@ -223,33 +282,12 @@ function user_charts_beanplot_form($form, &$form_state) {
     '#value' => 'Generate',
   );
 
-    if (isset($form_state['values'])) {
+    if (isset($form_state['processed'])) {
       $form['download'] = array(
         '#type' => 'markup',
         '#markup' => '<div id="download-svg-link">Save the chart as PNG</div>',
       );
     }
-
-
-  // Style, Javascript and Libraries.
-  drupal_add_css(
-    '#summary-table {
-      width: 90%;
-      margin: 0 auto;
-    }', 'inline');
-
-
-  $form['#attached']['css'] = array(
-    drupal_get_path('module','user_charts') . '/css/save_svg.css',
-  );
-
-  libraries_load('saveSvgAsPng');
-  $form['#attached']['js'] = array(
-    'http://d3js.org/d3.v3.min.js',
-    drupal_get_path('module','user_charts') . '/js/beanplot.chart.js',
-    drupal_get_path('module','user_charts') . '/js/saveSVGasPNGBeanplot.js',
-  );
-
 
   return $form;
 }
@@ -259,7 +297,152 @@ function user_charts_beanplot_form($form, &$form_state) {
  * Function callback: generate options in select germplasm.
  */
 function ajax_callback_select_germ($form, $form_state) {
-  return $form['data']['ajax_wrapper'];
+  return $form['customize']['ajax_wrapper'];
+}
+
+
+/**
+ * Validate the user data before attempting to draw a chart.
+ */
+function user_charts_beanplot_form_validate($form, &$form_state) {
+  $form_state['processed'] = array();
+  $form_index = '';
+
+  // Default germplasm to not selected.
+  $germplasm = '';
+
+  if ($form_state['triggering_element']['#value'] == 'Show Example') {
+    // Use show example form.
+    $form_index = 'example';
+
+    // Essential form fields.
+    $trait = $form_state[$form_index]['example_trait'];
+    $data = $form_state[$form_index]['example_data'];
+
+    // Form options:
+    $highlight = $form_state[$form_index]['example_highlight'];
+    // Get the germplasm to highlight.
+    if ($highlight) {
+      $germplasm = $form_state[$form_index]['example_germplasm'];
+    }
+
+    $table = $form_state[$form_index]['example_table'];
+
+    $form_state['show_example'] = TRUE;
+  }
+  else {
+    // Draw beanplot chart form.
+    $form_index = 'input';
+
+    // Essential form fields.
+    $trait = $form_state[$form_index]['trait'];
+    $data = $form_state[$form_index]['data'];
+
+    // Form options:
+    if (isset($form_state[$form_index]['highlight'])) {
+      $highlight = $form_state[$form_index]['highlight'];
+    }
+    else {
+      $highlight = 0;
+    }
+
+    // Get the germplasm to highlight.
+    if ($highlight) {
+      if (isset($form_state[$form_index]['germplasm'])) {
+        $germplasm = $form_state[$form_index]['germplasm'];
+      }
+      else {
+        $germplasm = null;
+      }
+    }
+
+    $table = $form_state[$form_index]['table'];
+
+    $form_state['show_example'] = FALSE;
+  }
+
+
+
+  // Perform basic test.
+  // Form fields are required as specified by #required option, thus
+  // when these fields don't get any value, Drupal handles the validation.
+
+  // Proceed to validate the pasted text data.
+  if ($data) {
+    // Initialize a place to store our processed data.
+    $form_state['processed'] = array(
+      'source' => '',
+      'trait' => array(),
+      'data' => array(),
+      'options' => array(),
+    );
+
+    // Save trait name and user options.
+    $form_state['processed']['source'] = $form_index;
+    $form_state['processed']['trait'] = trim($trait);
+    $form_state['processed']['options'] = array(
+      'highlight' => $highlight,
+      'germplasm' => $germplasm,
+      'table' => $table
+    );
+
+    // Read each row in the data.
+    $rows = explode("\n", $data);
+    // Array to hold errors found.
+    $arr_errors = array();
+    // Line error message.
+    $line_error = array(
+      'missing_col' => 'Line #%i (%line) : Requires four (4) columns, %columns detected',
+      'not_number'  => 'Line #%i (%line) : The mean (4th column) should be a number.',
+    );
+
+    $i = 0;
+    foreach($rows as $line) {
+      if (trim($line)) {
+        // Line is not empty.
+        // Read each tab, 2 or more spaces.
+        $cols = preg_split('/(\t|\s\s+)/', trim($line));
+
+        if (count($cols) < 4) {
+          // A line must contain 4 columns.
+          $arr_errors[] = t($line_error['missing_col'], array(
+            '%i' => $i + 1,   // Line counter.
+            '%line' => $line, // Current line.
+            '%columns' => count($cols)
+          ));
+        }
+        else {
+          // Check the type of the last column, which is the mean value.
+          $mean = trim($cols[3]);
+
+          if (!is_numeric($mean)) {
+            // Mean is not a number.
+            $arr_errors[] = t($line_error['not_number'], array(
+              '%i' => $i + 1,
+              '%line' => $line
+            ));
+          }
+          else {
+            // Line has 4 cols and mean is number. save line.
+            $form_state['processed']['data'][] = array(
+              'location' => trim($cols[0]),
+              'year'     => trim($cols[1]),
+              'germ'     => trim($cols[2]),
+              'mean'     => trim($cols[3]),
+            );
+          }
+        }
+      }
+
+      $i++;
+    }
+
+    // Report any errors found.
+    if (count($arr_errors) > 0) {
+      // Found errors.
+      form_set_error('data', theme('item_list', array('items' => $arr_errors)));
+    }
+  }
 }
 
 
@@ -268,149 +451,77 @@ function ajax_callback_select_germ($form, $form_state) {
  */
 function user_charts_beanplot_form_submit($form, &$form_state) {
   $form_state['rebuild'] = TRUE;
-  $germplasm = '';
 
-  // Get all form values entered by user.
-  if ($form_state['triggering_element']['#value'] == 'Show Example') {
-    $example = $form_state['example'];
+  // Summarize the data.
+  $trait = $form_state['processed']['trait'];
+  // Data array.
+  $data = $form_state['processed']['data'];
+  // User options.
+  $highlight = $form_state['processed']['options']['highlight'];
+  $germplasm = $form_state['processed']['options']['germplasm'];
+  $table = $form_state['processed']['options']['table'];
 
-    $trait          = $example['example_trait'];
-    $dataset        = $example['example_data'];
-    $with_table     = $example['example_table'];
-    $highlight_germ = $example['example_highlight'];
-
-    // When user wants to highlight the germplasm/year combination.
-    if ($highlight_germ == 1) {
-      $germplasm = trim($example['example_germplasm']);
-    }
-  }
-  else {
-    $trait          = $form_state['values']['trait'];
-    $dataset        = $form_state['values']['data'];
-    $with_table     = $form_state['values']['table'];
-    $highlight_germ = $form_state['values']['highlight'];
-
-    // When user wants to highlight the germplasm/year combination.
-    if ($highlight_germ == 1) {
-      $germplasm = trim($form_state['values']['germplasm']);
-    }
-  }
-
-  // Given the full dataset, create a summary in the following format
-  // location, year, mean, no of germ with this mean, flag if germ was measured
-  $each_row = explode("\n", $dataset);
+  // Array to hold summarized/compiled data.
   $arr_summary = array();
 
-  foreach($each_row as $row) {
-    if (trim($row)) {
-      $tab_values = explode("\t", $row);
+  foreach($data as $item) {
+    list($location, $year, $germ, $mean) = array_values($item);
 
-      $location = trim($tab_values[0]);
-      $year     = trim($tab_values[1]);
-      $germ     = trim($tab_values[2]);
-      $mean     = trim($tab_values[3]);
+    $index = $location . '-' . $year . '-' . $mean;
 
-      $index = $location . '-' . $year . '-' . $mean;
+    // Flag this line if user wants it highlighted in the chart.
+    $is_germ = 0;
 
-      // Flag this row if user wants it highlighted in the chart.
-      $is_germ = 0;
-      if ($highlight_germ == 1) {
-        $is_germ = ($germplasm == $germ) ? 1 : 0;
-      }
-
-      if (in_array($index, array_keys($arr_summary))) {
-        $count = (int)$arr_summary[$index]['no'];
-
-        $arr_summary[$index]['no'] = ($count + 1);
-
-        if ($arr_summary[$index]['germ'] != 1) {
-          $arr_summary[$index]['germ'] = $is_germ;
-        }
-      }
-      else {
-        $mean = strstr($mean, '.') ? (float)$mean : (int)$mean;
-
-        $arr_summary[$index] = array(
-          'location' => $location,
-          'year'     => $year,
-          'germ'     => $is_germ,
-          'mean'     => $mean,
-          'no'       => 1
-        );
-      }
-    }
-  }
-
-  ksort($arr_summary);
-
-  // This will summarize the data for d3.
-  $json_data = array(
-    'germplasm'     => $germplasm,
-    'phenotype'     => $trait,
-    'summary_table' => $with_table,
-    'dataset'       => drupal_json_encode(array_values($arr_summary))
-  );
-
-  drupal_add_js(array('userCharts' => array('beanplot' => $json_data)), array('type' => 'setting'));
-}
-
-
-/**
- * Validate the user data before attempting to draw a chart.
- */
-function user_charts_beanplot_form_validate($form, &$form_state) {
-  if ($form_state['triggering_element']['#value'] == 'Generate') {
-    $arr_errors = array();
-
-    // Trait field.
-    $trait = $form_state['values']['trait'];
-    if (strlen($trait) < 5) {
-      form_set_error('trait', t('Invalid trait supplied.'));
+    if ($highlight == 1) {
+      $is_germ = ($germplasm == $germ) ? 1 : 0;
     }
 
-    // Full dataset
-    $dataset = $form_state['values']['data'];
-    if (strlen($dataset) < 5) {
-      form_set_error('data', t('Invalid dataset supplied.'));
+    if (in_array($index, array_keys($arr_summary))) {
+      // If index is found, increment the number of times it appeard in the dataset.
+      $count = (int)$arr_summary[$index]['no'];
+
+      $arr_summary[$index]['no'] = ($count + 1);
+
+      if ($arr_summary[$index]['germ'] != 1) {
+        $arr_summary[$index]['germ'] = $is_germ;
+      }
     }
     else {
-      // Test for tabs.
-      // All line must be 4 columns.
-      $m = explode("\n", $dataset);
-      $i = 0;
-      foreach($m as $l) {
+      // New dataset.
+      $mean = strstr($mean, '.') ? (float)$mean : (int)$mean;
 
-        if (trim($l)) {
-          $e = explode("\t", $l);
-
-          if (count($e) < 4) {
-            array_push($arr_errors, '#' . ($i + 1));
-          }
-          else {
-            // Test mean value. The last col index = 3.
-            $mean = trim($e[3]);
-
-            if (!is_numeric($mean)) {
-              // Mean no number.
-              array_push($arr_errors, '#' . ($i + 1));
-            }
-          }
-        }
-
-        $i++;
-
-      }
-
-      // Report when there is error.
-      if (count($arr_errors) > 0) {
-        $line_no = implode(',', $arr_errors);
-        $message = 'Line ' . $line_no . ' failed the number of required columns or the
-          mean value is not a number.';
-
-        form_set_error('data', $message);
-      }
+      $arr_summary[$index] = array(
+        'location' => $location,
+        'year'     => $year,
+        'germ'     => $is_germ,
+        'mean'     => $mean,
+        'no'       => 1
+      );
     }
   }
+
+  // Sort array.
+  ksort($arr_summary);
+
+  // Make the summary data available to theme table in case user
+  // wants a summary table of mean values.
+  if ($table == 1) {
+    $form_state['processed']['summary_table'] = array(
+      'headers' => array('Location', 'Year', 'Mean', 'Germplasm'),
+      'rows' => $arr_summary,
+      'sticky' => FALSE,
+      'id' => 'summary-table'
+    );
+  }
+
+  // Finally, send processed data to D3.
+  $settings = array(
+    'trait' => $trait,
+    'germplasm' => $form_state['processed']['options']['germplasm'],
+    'data_JSON' => drupal_json_encode(array_values($arr_summary)),
+  );
+
+  drupal_add_js(array('userCharts' => array('beanplot' => $settings)), 'setting');
 }
 
 

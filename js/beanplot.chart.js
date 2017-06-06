@@ -2,14 +2,17 @@
   Drupal.behaviors.userchartsBeanplot = {
     attach: function (context, settings) {
     //
+      // Set the focus to trait field - so user wont have to select the field to type.
       var fldTrait = $('#user-chart-trait-field');
-      var fldData  = $('#user-chart-data-field');
+      fldTrait.focus();
+
 
       // Reset the form when data fieldset is clicked.
       $('#edit-data .fieldset-title').click(function() {
         if ($('svg').length > 0) {
           $('g, svg, #download-svg-link, #beanplot-container h3, #beanplot-container').remove();
           $('#edit-chart .fieldset-title').click();
+          $('#edit-customize .fieldset-title').click();
 
           if ($('#summary-table')) {
             $('#summary-table').remove();
@@ -19,9 +22,16 @@
             $('.warning').remove();
           }
 
+          if ($('#message-sample-data').length > 0) {
+            $('#message-sample-data').remove();
+          }
+
           $('#edit-submit').show();
+          // Focus the trait field when user wants to start all over.
+          fldTrait.focus();
         }
       });
+
 
       if (Drupal.settings.hasOwnProperty('userCharts')) {
       //
@@ -34,11 +44,10 @@
         // Germplasm.
         var germplasm = stringData['germplasm'];
         // Trait name.
-        var phenotype = stringData['phenotype'];
-        // Summary table.
-        var summaryTable = stringData['summary_table'];
+        var phenotype = stringData['trait'];
+
         // Convert the string data to object.
-        var dataset = JSON.parse(stringData['dataset']);
+        var dataset = JSON.parse(stringData['data_JSON']);
 
         // Arrange dataset by year and location.
         var location_year = d3.nest()
@@ -70,57 +79,14 @@
         getBPContainerDimension();
 
         // Canvas.
+        // NOTE: id should be chart-svg for savePNG library to work.
         svg = d3.select('#beanplot-container')
           .append('svg')
-            .attr('id', 'beanplot-svg-container');
+            .attr('id', 'chart-svg');
 
+        // When chart is display, no submit button please.
         if ($('#beanplot-container')) {
           $('#edit-submit').hide();
-        }
-
-        // When user wants a summary table.
-        if (summaryTable == 1) {
-          var tblHeader = ['Location', 'Year', 'Mean', 'Germplasm'];
-
-          var div = d3.select('#edit-chart')
-            .append('div')
-              .attr('id', 'summary-table');
-
-          div.append('h3')
-            .text('Distribution of mean values summary table');
-
-          var table = div
-            .append('table');
-
-          var tableHead = table
-            .append('thead')
-            .append('tr');
-
-          tableHead
-            .selectAll('thead tr')
-            .data(tblHeader)
-            .enter()
-            .append('th')
-            .text(function(d) {
-              return d;
-            });
-
-          var tableRow = table
-            .append('tbody');
-
-          var rows = tableRow
-            .selectAll('tbody tr')
-            .data(dataset)
-            .enter()
-            .append('tr')
-            .attr('class', function(d, i) {
-              return (i % 2) ? 'even' : 'odd';
-            });
-
-          rows.append('td').html(function(m) { return m.location; });
-          rows.append('td').html(function(m) { return m.year;     });
-          rows.append('td').html(function(m) { return m.mean;     });
-          rows.append('td').html(function(m) { return m.no;       });
         }
 
         // Chart margins and dimensions.
@@ -137,7 +103,12 @@
           bpMargin.left   = axesHW;
           bpMargin.gutter = 5;
 
-        // Define Gradient.
+        // Define Gradient. This will be use to add
+        // visual effect (3D) and a subtle border
+        // that will separate each bars especially
+        // when stacked together.
+
+        // A solid color will make a stack look one solid column.
         var bpGradient = svg.append('defs')
           .append('linearGradient')
           .attr('id', 'bp-gradient')
@@ -383,8 +354,8 @@
 
 
         // Style line and text.
-        // NOT: External style sheet will not apply when saving
-        // this chart to PNG.
+        // NOTE: External style sheet will not apply when saving
+        // this chart to PNG. Adding inline top priority style.
         d3.selectAll('#bp-y-scale text')
           .style('font', '10px sans-serif');
 
@@ -412,15 +383,23 @@
       });
 
       if ($('.error').length > 0) {
-        $('#edit-chart .fieldset-title').click();
+        if (!$('#edit-chart').hasClass('collapsed')) {
+          $('#edit-chart .fieldset-title').click();
+        }
         $('#download-svg-link').hide();
       }
 
-      fldTrait.focus();
 
-
-      // Position the chart elements to the right coordinates based
-      // height and width returned.
+      /**
+       * Position/render the chart elements to the right coordinates based
+       * height and width returned after all svg elements have been made
+       * available to DOM.
+       *
+       * @param u
+       *   A boolean value indicating the source of request to render svg elements.
+       *   1 - From window resize.
+       *   0 - Initial page load.
+       */
       function renderBP(u = 1) {
         // Get the new dimension.
         if (u == 1) {
@@ -551,7 +530,18 @@
 
       // HELPER FUNCTIONS:
 
-      // Position the bars into the right y (mean) scale.
+      /**
+       * Function: position the bars into the right y (mean) scale.
+       *
+       * @param mean
+       *   An integer containing the mean value to plot.
+       * @param h
+       *   An integer containing the estimated height of each bar.
+       *
+       * @return
+       *   An integer containing the estimated position of the a particular mean value, which
+       *   is the position of mean (tick mark in y scale) less half the height of the bar.
+       */
       function posBar(mean, h) {
         var index, r;
 
@@ -581,15 +571,10 @@
       }
 
 
-      // Debugging function. Echo the contents of d.
-      function echo(d) {
-        alert(JSON.stringify(d));
-        //console.log(JSON.stringify(d));
-        //console.log(d);
-      }
-
-      // Get the height and width of the chart container
-      // and use it to estimate the amount of area chartable.
+      /**
+       * Function: get the height and width of the chart container
+       * and use it to estimate the amount of area chartable.
+       */
       function getBPContainerDimension() {
         // Reference chart container.
         var container = d3.select('#beanplot-container');
@@ -602,13 +587,19 @@
         height = parseInt(containerHeight, 10);
         width = parseInt(containerWidth, 10);
       }
-      //
 
 
-      // Function stack text on top of each other.
-      // e.g.   2016    (year)
-      //      Saskatoon (location)
-      function wrapWords(text, width) {
+      /**
+       * Function: stack text on top of each other.
+       * example: 2016 Saskatoon
+       *
+       *          2016
+       *        Saskatoon
+       *
+       * @param text
+       *   String value containing the text to be converted.
+       */
+      function wrapWords(text) {
         text.each(function() {
           // Reference text.
           var text  = d3.select(this);
@@ -636,7 +627,17 @@
       }
 
 
-      // Function increase the max mean value.
+      /**
+       * Function: decrease the min value.
+       * To prevent bars from rendering off the top edge of the canvas
+       * the maximum mean value is increased.
+       *
+       * @param v
+       *   An integer containing the maximum mean value from the data.
+       *
+       * @return integer
+       *   An integer containing the increased maximum mean value.
+       */
       function top(v) {
         var newMean;
 
@@ -650,7 +651,17 @@
       }
 
 
-      // Function decrease the min value.
+      /**
+       * Function: decrease the min value.
+       * To prevent bars from rendering off the x coordinate.
+       * the minimum mean value is reduced.
+       *
+       * @param v
+       *   An integer containing the minimum mean value from the data.
+       *
+       * @return integer
+       *   An integer containing the reduced minimum mean value.
+       */
       function bottom(v) {
         var newMean;
 
@@ -668,12 +679,25 @@
       }
 
 
-      // Generate random numbers.
+      /**
+       * Function: generate random numbers.
+       * Random number will be used to advance or delay
+       * rendering of a bars into the canvas creating a
+       * subtle loading/positioning animation.
+       */
       function randomNumber() {
         var min = 1;
         var max = 10;
 
         return (Math.random() * (max - min) + min ) * 100;
+      }
+
+
+      // Debugging function. Echo the contents of d.
+      function echo(d) {
+        alert(JSON.stringify(d));
+        //console.log(JSON.stringify(d));
+        //console.log(d);
       }
     //
     }
