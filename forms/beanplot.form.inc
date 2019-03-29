@@ -11,7 +11,7 @@ function user_charts_beanplot_form($form, &$form_state) {
   libraries_load('saveSvgAsPng');
 
   $form['#attached']['js'] = array(
-    'http://d3js.org/d3.v3.min.js',
+    'https://d3js.org/d3.v3.min.js',
     $module_path . '/js/beanplot.chart.js',
     $module_path . '/js/saveSVGasPNG.js',
   );

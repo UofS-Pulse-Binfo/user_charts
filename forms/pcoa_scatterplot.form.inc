@@ -12,8 +12,8 @@ function user_charts_pcoa_form($form, &$form_state) {
   // Add the javascript libraries needed for this chart.
   libraries_load('saveSvgAsPng');
   $form['#attached']['js'] = array(
-    'http://d3js.org/d3.v3.min.js',
-    'http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js',
+    'https://d3js.org/d3.v3.min.js',
+    'https://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js',
     drupal_get_path('module','user_charts') . '/js/pcoaScatterplot.chart.js',
     drupal_get_path('module','user_charts') . '/js/saveSVGasPNG.js',
   );
